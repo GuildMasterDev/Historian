@@ -26,8 +26,11 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Build application
-      run: npm run build
+    - name: Build application  
+      run: |
+        mkdir -p public/build
+        npx tailwindcss -i ./src/global.css -o ./public/build/bundle.css --minify
+        npx rollup -c
 
     - name: Upload build artifacts
       if: matrix.node-version == '20.x'

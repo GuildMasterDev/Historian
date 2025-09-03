@@ -1,6 +1,6 @@
 {
   "name": "historian",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Svelte + Electron app for organizing history resources",
   "main": "main.js",
   "scripts": {

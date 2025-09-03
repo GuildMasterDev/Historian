@@ -1,4 +1,4 @@
-name: Build and Release
+name: Create Release
 
 on:
   push:
@@ -11,9 +11,6 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.version }}
     
     steps:
     - uses: actions/checkout@v4
@@ -23,7 +20,6 @@ jobs:
       run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
     
     - name: Create Release
-      id: create_release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -31,122 +27,18 @@ jobs:
           --title "Historian ${{ steps.get_version.outputs.version }}" \
           --notes "## Historian ${{ steps.get_version.outputs.version }}
         
-        ### Downloads
-        Download the appropriate version for your platform below.
-        
         ### Installation
-        - **macOS**: Download the .dmg file and drag Historian to your Applications folder
-        - **Windows**: Download the .exe installer and run it
-        - **Linux**: Download the .AppImage file, make it executable, and run it
+        1. Clone the repository
+        2. Run \`npm install\`
+        3. Run \`npm run build\`
+        4. Run \`npm run electron\`
+        
+        ### Building Distributables
+        - **macOS**: \`npm run dist-mac\`
+        - **Windows**: \`npm run dist-win\`
+        - **Linux**: \`npm run dist-linux\`
         
         ### What's New
         See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.get_version.outputs.version }}) for changes." \
           --draft=false \
           --prerelease=false
-        
-        # Get the upload URL for the release
-        UPLOAD_URL=$(gh api repos/${{ github.repository }}/releases/tags/${{ github.ref_name }} --jq '.upload_url')
-        echo "upload_url=$UPLOAD_URL" >> $GITHUB_OUTPUT
-
-  build-electron:
-    needs: create-release
-    runs-on: ${{ matrix.os }}
-    
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            platform: mac
-            artifact_ext: dmg
-            asset_name: Historian-${{ needs.create-release.outputs.version }}-mac.dmg
-          - os: windows-latest
-            platform: win
-            artifact_ext: exe
-            asset_name: Historian-Setup-${{ needs.create-release.outputs.version }}.exe
-          - os: ubuntu-latest
-            platform: linux
-            artifact_ext: AppImage
-            asset_name: Historian-${{ needs.create-release.outputs.version }}.AppImage
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-
-    - name: Install Linux build dependencies
-      if: matrix.platform == 'linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y rpm fakeroot dpkg
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build application
-      run: npm run build
-
-    - name: Build Electron app for ${{ matrix.platform }}
-      run: npm run dist-${{ matrix.platform }}
-
-    - name: List dist contents
-      run: ls -la dist/
-
-    - name: Upload to Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: bash
-      run: |
-        # Find the built artifact
-        if [ "${{ matrix.platform }}" = "win" ]; then
-          ARTIFACT=$(ls dist/*Setup*.exe 2>/dev/null | head -1 || ls dist/*.exe | head -1)
-        elif [ "${{ matrix.platform }}" = "mac" ]; then
-          ARTIFACT=$(ls dist/*.dmg | head -1)
-        else
-          ARTIFACT=$(ls dist/*.AppImage | head -1)
-        fi
-        
-        if [ -z "$ARTIFACT" ]; then
-          echo "Error: No artifact found with extension .${{ matrix.artifact_ext }}"
-          exit 1
-        fi
-        
-        echo "Uploading artifact: $ARTIFACT"
-        gh release upload "${{ github.ref_name }}" "$ARTIFACT" --clobber
-
-  build-web:
-    needs: create-release
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build application
-      run: npm run build
-
-    - name: Create web archive
-      run: |
-        mkdir -p historian-web
-        cp -r public/* historian-web/
-        cp resources.json historian-web/
-        tar -czf historian-web-${{ needs.create-release.outputs.version }}.tar.gz historian-web/
-
-    - name: Upload web build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release upload "${{ github.ref_name }}" \
-          "historian-web-${{ needs.create-release.outputs.version }}.tar.gz" \
-          --clobber

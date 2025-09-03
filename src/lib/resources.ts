@@ -1,0 +1,211 @@
+export interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  tags: string[];
+  thumbnail?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  resources: Resource[];
+}
+
+export async function loadResources(): Promise<Category[]> {
+  try {
+    const response = await fetch('./resources.json');
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
+    console.error('Failed to load resources:', error);
+  }
+  
+  // Return default resources if file doesn't exist
+  return getDefaultResources();
+}
+
+function getDefaultResources(): Category[] {
+  return [
+    {
+      id: 'ancient',
+      name: 'Ancient History',
+      icon: '🏛️',
+      resources: [
+        {
+          id: 'ancient-1',
+          title: 'Ancient History Encyclopedia',
+          description: 'Comprehensive resource covering ancient civilizations from around the world.',
+          url: 'https://www.worldhistory.org/',
+          tags: ['ancient', 'civilizations', 'encyclopedia']
+        },
+        {
+          id: 'ancient-2',
+          title: 'Perseus Digital Library',
+          description: 'Primary and secondary sources for the study of ancient Greece and Rome.',
+          url: 'http://www.perseus.tufts.edu/',
+          tags: ['ancient', 'greece', 'rome', 'primary sources']
+        },
+        {
+          id: 'ancient-3',
+          title: 'Livius.org',
+          description: 'Articles on ancient history, from Mesopotamia to the Byzantine empire.',
+          url: 'https://www.livius.org/',
+          tags: ['ancient', 'mesopotamia', 'byzantine']
+        }
+      ]
+    },
+    {
+      id: 'medieval',
+      name: 'Medieval History',
+      icon: '🏰',
+      resources: [
+        {
+          id: 'medieval-1',
+          title: 'Internet Medieval Sourcebook',
+          description: 'Collection of public domain and copy-permitted texts related to medieval history.',
+          url: 'https://sourcebooks.fordham.edu/sbook.asp',
+          tags: ['medieval', 'primary sources', 'documents']
+        },
+        {
+          id: 'medieval-2',
+          title: 'The Medieval Academy',
+          description: 'Resources and publications on medieval studies.',
+          url: 'https://www.medievalacademy.org/',
+          tags: ['medieval', 'academic', 'research']
+        },
+        {
+          id: 'medieval-3',
+          title: 'British Library Medieval Manuscripts',
+          description: 'Digitized medieval manuscripts from the British Library collection.',
+          url: 'https://www.bl.uk/manuscripts/',
+          tags: ['medieval', 'manuscripts', 'digitized']
+        }
+      ]
+    },
+    {
+      id: 'modern',
+      name: 'Modern History',
+      icon: '🏭',
+      resources: [
+        {
+          id: 'modern-1',
+          title: 'Spartacus Educational',
+          description: 'Encyclopedia entries on British history, with focus on social history.',
+          url: 'https://spartacus-educational.com/',
+          tags: ['modern', 'british', 'social history']
+        },
+        {
+          id: 'modern-2',
+          title: 'The National Archives (UK)',
+          description: 'Official archive of the UK government, with resources dating back 1000 years.',
+          url: 'https://www.nationalarchives.gov.uk/',
+          tags: ['modern', 'archives', 'government', 'uk']
+        },
+        {
+          id: 'modern-3',
+          title: 'Library of Congress',
+          description: 'Largest library in the world with extensive historical collections.',
+          url: 'https://www.loc.gov/',
+          tags: ['modern', 'archives', 'usa', 'library']
+        }
+      ]
+    },
+    {
+      id: 'military',
+      name: 'Military History',
+      icon: '⚔️',
+      resources: [
+        {
+          id: 'military-1',
+          title: 'Military History Online',
+          description: 'Articles and resources on military history from ancient to modern times.',
+          url: 'https://www.militaryhistoryonline.com/',
+          tags: ['military', 'warfare', 'battles']
+        },
+        {
+          id: 'military-2',
+          title: 'National Museum of Military History',
+          description: 'Collections and exhibits on military history.',
+          url: 'https://www.nationalmuseum.af.mil/',
+          tags: ['military', 'museum', 'artifacts']
+        },
+        {
+          id: 'military-3',
+          title: 'The Art of War by Sun Tzu',
+          description: 'Ancient Chinese military treatise on warfare and strategy.',
+          url: 'https://www.gutenberg.org/ebooks/132',
+          tags: ['military', 'strategy', 'ancient', 'philosophy']
+        }
+      ]
+    },
+    {
+      id: 'maps',
+      name: 'Historical Maps',
+      icon: '🗺️',
+      resources: [
+        {
+          id: 'maps-1',
+          title: 'David Rumsey Map Collection',
+          description: 'Over 150,000 historical maps spanning five centuries.',
+          url: 'https://www.davidrumsey.com/',
+          tags: ['maps', 'cartography', 'historical']
+        },
+        {
+          id: 'maps-2',
+          title: 'Old Maps Online',
+          description: 'Portal for historical maps from libraries around the world.',
+          url: 'https://www.oldmapsonline.org/',
+          tags: ['maps', 'historical', 'global']
+        },
+        {
+          id: 'maps-3',
+          title: 'GeaCron Interactive Historical Atlas',
+          description: 'Interactive world history atlas since 3000 BC.',
+          url: 'http://geacron.com/',
+          tags: ['maps', 'interactive', 'timeline']
+        }
+      ]
+    },
+    {
+      id: 'documents',
+      name: 'Primary Sources',
+      icon: '📜',
+      resources: [
+        {
+          id: 'docs-1',
+          title: 'Internet Archive',
+          description: 'Digital library of books, documents, and historical materials.',
+          url: 'https://archive.org/',
+          tags: ['documents', 'archive', 'digital library']
+        },
+        {
+          id: 'docs-2',
+          title: 'Avalon Project',
+          description: 'Documents in law, history and diplomacy.',
+          url: 'https://avalon.law.yale.edu/',
+          tags: ['documents', 'law', 'diplomacy']
+        },
+        {
+          id: 'docs-3',
+          title: 'EuroDocs',
+          description: 'Online sources for European history.',
+          url: 'https://eudocs.lib.byu.edu/',
+          tags: ['documents', 'european', 'primary sources']
+        }
+      ]
+    }
+  ];
+}
+
+declare global {
+  interface Window {
+    electronAPI: {
+      openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
+      getVersion: () => Promise<string>;
+    };
+  }
+}

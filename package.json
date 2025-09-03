@@ -1,6 +1,6 @@
 {
   "name": "historian",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Svelte + Electron app for organizing history resources",
   "main": "main.js",
   "scripts": {
@@ -75,7 +75,7 @@
     "linux": {
       "target": "AppImage",
       "category": "Education",
-      "icon": "public/icon.png"
+      "icon": "public/icons"
     }
   }
 }

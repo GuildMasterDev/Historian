@@ -4,15 +4,19 @@
   "description": "A Svelte + Electron app for organizing history resources",
   "main": "main.js",
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
+    "dev": "node dev.js",
+    "build": "node build.js",
+    "build:css": "npx tailwindcss -i ./src/global.css -o ./public/build/bundle.css --minify",
+    "build:js": "rollup -c",
+    "watch:css": "npx tailwindcss -i ./src/global.css -o ./public/build/bundle.css --watch",
     "electron": "electron .",
-    "electron-dev": "npm run build && electron .",
+    "start:electron": "electron .",
     "start": "npm run build && electron .",
     "dist": "npm run build && electron-builder",
     "dist-mac": "npm run build && electron-builder --mac",
     "dist-win": "npm run build && electron-builder --win",
-    "dist-linux": "npm run build && electron-builder --linux"
+    "dist-linux": "npm run build && electron-builder --linux",
+    "clean": "rm -rf public/build dist"
   },
   "keywords": [
     "electron",

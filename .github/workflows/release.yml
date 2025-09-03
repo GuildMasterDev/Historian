@@ -1,0 +1,148 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Get version from tag
+      id: get_version
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Historian ${{ steps.get_version.outputs.version }}
+        body: |
+          ## Historian ${{ steps.get_version.outputs.version }}
+          
+          ### Downloads
+          Download the appropriate version for your platform below.
+          
+          ### Installation
+          - **macOS**: Download the .dmg file and drag Historian to your Applications folder
+          - **Windows**: Download the .exe installer and run it
+          - **Linux**: Download the .AppImage file, make it executable, and run it
+          
+          ### What's New
+          See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.get_version.outputs.version }}) for changes.
+        draft: false
+        prerelease: false
+
+  build-electron:
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+            artifact_name: Historian-*.dmg
+            asset_name: Historian-${{ needs.create-release.outputs.version }}-mac.dmg
+          - os: windows-latest
+            platform: win
+            artifact_name: Historian Setup *.exe
+            asset_name: Historian-Setup-${{ needs.create-release.outputs.version }}.exe
+          - os: ubuntu-latest
+            platform: linux
+            artifact_name: Historian-*.AppImage
+            asset_name: Historian-${{ needs.create-release.outputs.version }}.AppImage
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Build Electron app for ${{ matrix.platform }}
+      run: npm run dist-${{ matrix.platform }}
+
+    - name: List dist contents
+      run: ls -la dist/
+
+    - name: Find built artifact
+      id: find_artifact
+      shell: bash
+      run: |
+        if [ "${{ matrix.platform }}" = "win" ]; then
+          # Windows: Find the Setup exe file
+          ARTIFACT=$(ls dist/*.exe | grep -i setup | head -1)
+        elif [ "${{ matrix.platform }}" = "mac" ]; then
+          # macOS: Find the dmg file
+          ARTIFACT=$(ls dist/*.dmg | head -1)
+        else
+          # Linux: Find the AppImage file
+          ARTIFACT=$(ls dist/*.AppImage | head -1)
+        fi
+        echo "artifact_path=$ARTIFACT" >> $GITHUB_OUTPUT
+        echo "Found artifact: $ARTIFACT"
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ${{ steps.find_artifact.outputs.artifact_path }}
+        asset_name: ${{ matrix.asset_name }}
+        asset_content_type: application/octet-stream
+
+  build-web:
+    needs: create-release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Create web archive
+      run: |
+        mkdir -p historian-web
+        cp -r public/* historian-web/
+        cp resources.json historian-web/
+        tar -czf historian-web-${{ needs.create-release.outputs.version }}.tar.gz historian-web/
+
+    - name: Upload web build
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./historian-web-${{ needs.create-release.outputs.version }}.tar.gz
+        asset_name: historian-web-${{ needs.create-release.outputs.version }}.tar.gz
+        asset_content_type: application/gzip

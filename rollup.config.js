@@ -5,7 +5,7 @@ import livereload from 'rollup-plugin-livereload';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import sveltePreprocess from 'svelte-preprocess';
-import postcss from 'rollup-plugin-postcss';
+import css from 'rollup-plugin-css-only';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -19,7 +19,7 @@ function serve() {
   return {
     writeBundle() {
       if (server) return;
-      server = require('child_process').spawn('npm', ['run', 'electron-dev'], {
+      server = require('child_process').spawn('npm', ['run', 'start:electron'], {
         stdio: ['ignore', 'inherit', 'inherit'],
         shell: true
       });
@@ -39,25 +39,19 @@ export default {
     file: 'public/build/bundle.js'
   },
   plugins: [
-    postcss({
-      extract: 'public/build/bundle.css',
-      minimize: production,
-      config: {
-        path: './postcss.config.js'
-      }
-    }),
     svelte({
       preprocess: sveltePreprocess({
         typescript: {
           tsconfigFile: './tsconfig.json'
-        },
-        postcss: true
+        }
       }),
       compilerOptions: {
         dev: !production
       },
       emitCss: true
     }),
+    // Extract component CSS but don't process global styles
+    css({ output: false }),
     resolve({
       browser: true,
       dedupe: ['svelte'],

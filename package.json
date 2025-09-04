@@ -32,7 +32,7 @@
     "@rollup/plugin-typescript": "^11.1.5",
     "@tsconfig/svelte": "^5.0.2",
     "autoprefixer": "^10.4.16",
-    "electron": "^28.0.0",
+    "electron": "^38.0.0",
     "electron-builder": "^24.9.1",
     "postcss": "^8.4.32",
     "rollup": "^4.9.1",

@@ -52,7 +52,7 @@
     "electron-is-dev": "^2.0.0"
   },
   "build": {
-    "appId": "com.historian.app",
+    "appId": "me.davidcanhelp.historian",
     "productName": "Historian",
     "directories": {
       "output": "dist"

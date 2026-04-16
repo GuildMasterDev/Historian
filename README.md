@@ -13,7 +13,7 @@ A modern Electron + Svelte application for organizing and browsing history resou
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v20 or higher)
 - npm or yarn package manager
 
 ## Installation

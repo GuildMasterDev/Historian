@@ -26,7 +26,7 @@
         src={resource.thumbnail} 
         alt={resource.title}
         class="w-full h-full object-cover"
-        on:error={(e) => e.currentTarget.style.display = 'none'}
+        on:error={(e) => (e.currentTarget as HTMLImageElement).style.display = 'none'}
       />
     </div>
   {:else}

@@ -1,6 +1,5 @@
 const { app, BrowserWindow, shell, ipcMain, Menu } = require('electron');
 const path = require('path');
-const isDev = require('electron-is-dev');
 
 // Set the application name
 app.setName('Historian');
@@ -29,7 +28,7 @@ function createWindow() {
     mainWindow.show();
   });
 
-  // if (isDev) {
+  // if (!app.isPackaged) {
   //   mainWindow.webContents.openDevTools();
   // }
 
